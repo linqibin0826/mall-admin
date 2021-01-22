@@ -61,8 +61,11 @@
         prop="logo"
         header-align="center"
         align="center"
-        label="品牌logo地址"
+        label="品牌logo"
       >
+        <template slot-scope="scope">
+          <img :src="scope.row.logo" style="width: 100px; height: 100px" />
+        </template>
       </el-table-column>
       <el-table-column
         prop="descript"
@@ -170,11 +173,11 @@ export default {
   },
   methods: {
     updateShowStatus (data) {
-      let { brandId, showStatus} = data
+      let { brandId, name, showStatus} = data
       this.$http({
         url: this.$http.adornUrl('/product/brand/update'),
         method: 'post',
-        data: this.$http.adornData({ brandId, showStatus }, false)
+        data: this.$http.adornData({ brandId, name, showStatus }, false)
       }).then(({ data }) => {
         this.$message({
           message: '显示状态更新成功',
