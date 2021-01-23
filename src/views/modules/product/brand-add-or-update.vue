@@ -94,7 +94,7 @@ export default {
           },
         ],
         sort: [{validator: (rule, value, callback) => {
-            if (!value) {
+            if (value == null) {
               callback(new Error('排序字段不可为空'))
             }else if (!Number.isInteger(value) || value < 0) {
               callback(new Error('排序字段格式不正确'))

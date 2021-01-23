@@ -18,14 +18,16 @@
           v-if="isAuth('product:brand:save')"
           type="primary"
           @click="addOrUpdateHandle()"
-          >新增</el-button
+        >新增
+        </el-button
         >
         <el-button
           v-if="isAuth('product:brand:delete')"
           type="danger"
           @click="deleteHandle()"
           :disabled="dataListSelections.length <= 0"
-          >批量删除</el-button
+        >批量删除
+        </el-button
         >
       </el-form-item>
     </el-form>
@@ -64,7 +66,7 @@
         label="品牌logo"
       >
         <template slot-scope="scope">
-          <img :src="scope.row.logo" style="width: 100px; height: 100px" />
+          <img :src="scope.row.logo" style="width: 100px; height: 100px"/>
         </template>
       </el-table-column>
       <el-table-column
@@ -114,17 +116,20 @@
         label="操作"
       >
         <template slot-scope="scope">
+          <el-button type="text" size="small" @click="updateCatalogHandle(scope.row.brandId)">关联分类</el-button>
           <el-button
             type="text"
             size="small"
             @click="addOrUpdateHandle(scope.row.brandId)"
-            >修改</el-button
+          >修改
+          </el-button
           >
           <el-button
             type="text"
             size="small"
             @click="deleteHandle(scope.row.brandId)"
-            >删除</el-button
+          >删除
+          </el-button
           >
         </template>
       </el-table-column>
@@ -139,17 +144,50 @@
       layout="total, sizes, prev, pager, next, jumper"
     >
     </el-pagination>
-    <!-- 弹窗, 新增 / 修改 -->
+    <!-- 弹窗, 新增 / 修改 开始-->
     <add-or-update
       v-if="addOrUpdateVisible"
       ref="addOrUpdate"
       @refreshDataList="getDataList"
     ></add-or-update>
+    <!-- 弹窗, 新增 / 修改 结束-->
+
+    <!--关联分类 开始-->
+    <el-dialog title="关联分类" :visible.sync="cateRelationDialogVisible" width="30%">
+      <el-popover placement="right-end" v-model="popCatalogSelectVisible">
+        <category-cascader :catalogPath.sync="catalogPath"></category-cascader>
+        <div style="text-align: right; margin: 0">
+          <el-button size="mini" type="text" @click="popCatalogSelectVisible = false">取消</el-button>
+          <el-button type="primary" size="mini" @click="addCatalogSelect">确定</el-button>
+        </div>
+        <el-button slot="reference">新增关联</el-button>
+      </el-popover>
+      <el-table :data="cateRelationTableData" style="width: 100%">
+        <el-table-column prop="id" label="#"></el-table-column>
+        <el-table-column prop="brandName" label="品牌名"></el-table-column>
+        <el-table-column prop="catalogName" label="分类名"></el-table-column>
+        <el-table-column fixed="right" header-align="center" align="center" label="操作">
+          <template slot-scope="scope">
+            <el-button
+              type="text"
+              size="small"
+              @click="deleteCateRelationHandle(scope.row.id,scope.row.brandId)"
+            >移除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="cateRelationDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="cateRelationDialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import AddOrUpdate from './brand-add-or-update'
+
 export default {
   data () {
     return {
@@ -157,12 +195,16 @@ export default {
         key: ''
       },
       dataList: [],
+      catalogPath: [],
       pageIndex: 1,
       pageSize: 10,
       totalPage: 0,
+      cateRelationTableData: [],
       dataListLoading: false,
       dataListSelections: [],
-      addOrUpdateVisible: false
+      addOrUpdateVisible: false,
+      cateRelationDialogVisible: false,
+      popCatalogSelectVisible: false
     }
   },
   components: {
@@ -172,13 +214,41 @@ export default {
     this.getDataList()
   },
   methods: {
+    addCatalogSelect () {
+      //{"brandId":1,"catalogId":2}
+      this.popCatalogSelectVisible = false
+      this.$http({
+        url: this.$http.adornUrl('/product/categorybrandrelation/save'),
+        method: 'post',
+        data: this.$http.adornData({
+          brandId: this.brandId,
+          catalogId: this.catalogPath[this.catalogPath.length - 1]
+        }, false)
+      }).then(({data}) => {
+        this.getCateRelation()
+      })
+    },
+    deleteCateRelationHandle (id, brandId) {
+      this.$http({
+        url: this.$http.adornUrl('/product/categorybrandrelation/delete'),
+        method: 'post',
+        data: this.$http.adornData([id], false)
+      }).then(({data}) => {
+        this.getCateRelation()
+      })
+    },
+    updateCatalogHandle (brandId) {
+      this.cateRelationDialogVisible = true
+      this.brandId = brandId
+      this.getCateRelation()
+    },
     updateShowStatus (data) {
-      let { brandId, name, showStatus} = data
+      let {brandId, name, showStatus} = data
       this.$http({
         url: this.$http.adornUrl('/product/brand/update'),
         method: 'post',
-        data: this.$http.adornData({ brandId, name, showStatus }, false)
-      }).then(({ data }) => {
+        data: this.$http.adornData({brandId, name, showStatus}, false)
+      }).then(({data}) => {
         this.$message({
           message: '显示状态更新成功',
           type: 'success'
@@ -196,7 +266,7 @@ export default {
           limit: this.pageSize,
           key: this.dataForm.key
         })
-      }).then(({ data }) => {
+      }).then(({data}) => {
         if (data && data.code === 0) {
           this.dataList = data.page.list
           this.totalPage = data.page.totalCount
@@ -249,7 +319,7 @@ export default {
           url: this.$http.adornUrl('/product/brand/delete'),
           method: 'post',
           data: this.$http.adornData(ids, false)
-        }).then(({ data }) => {
+        }).then(({data}) => {
           if (data && data.code === 0) {
             this.$message({
               message: '操作成功',
