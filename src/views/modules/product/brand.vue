@@ -116,7 +116,12 @@
         label="操作"
       >
         <template slot-scope="scope">
-          <el-button type="text" size="small" @click="updateCatalogHandle(scope.row.brandId)">关联分类</el-button>
+          <el-button
+            type="text"
+            size="small"
+            @click="updateCatalogHandle(scope.row.brandId)"
+          >关联分类
+          </el-button>
           <el-button
             type="text"
             size="small"
@@ -166,7 +171,7 @@
         <el-table-column prop="id" label="#"></el-table-column>
         <el-table-column prop="brandName" label="品牌名"></el-table-column>
         <el-table-column prop="catalogName" label="分类名"></el-table-column>
-        <el-table-column fixed="right" header-align="center" align="center" label="操作">
+        <el-table-column fixed="right" header-align="center" align="center"  label="操作">
           <template slot-scope="scope">
             <el-button
               type="text"
@@ -187,6 +192,7 @@
 
 <script>
 import AddOrUpdate from './brand-add-or-update'
+import CategoryCascader from '../common/category-cascader'
 
 export default {
   data () {
@@ -208,7 +214,8 @@ export default {
     }
   },
   components: {
-    AddOrUpdate
+    AddOrUpdate,
+    CategoryCascader
   },
   activated () {
     this.getDataList()
@@ -241,6 +248,17 @@ export default {
       this.cateRelationDialogVisible = true
       this.brandId = brandId
       this.getCateRelation()
+    },
+    getCateRelation () {
+      this.$http({
+        url: this.$http.adornUrl('/product/categorybrandrelation/catalog/list'),
+        method: 'get',
+        params: this.$http.adornParams({
+          brandId: this.brandId
+        })
+      }).then(({data}) => {
+        this.cateRelationTableData = data.data
+      })
     },
     updateShowStatus (data) {
       let {brandId, name, showStatus} = data

@@ -75,7 +75,7 @@
         <add-or-update v-if="addOrUpdateVisible" ref="addOrUpdate" @refreshDataList="getDataList"></add-or-update>
 
         <!-- 修改关联关系 -->
-        <!--        <relation-update v-if="relationVisible" ref="relationUpdate" @refreshData="getDataList"></relation-update>-->
+        <relation-update v-if="relationVisible" ref="relationUpdate" @refreshData="getDataList"></relation-update>
       </div>
       <!--Table End-->
     </el-col>
@@ -87,10 +87,11 @@
 //例如：import 《组件名称》 from '《组件路径》';
 import Category from '../common/category'
 import AddOrUpdate from './attrgroup-add-or-update'
+import RelationUpdate from "./attr-group-relation"
 
 export default {
 //import引入的组件需要注入到对象中才能使用
-  components: {Category, AddOrUpdate},
+  components: {Category, AddOrUpdate, RelationUpdate},
   // props: {},
   data () {
     return {
